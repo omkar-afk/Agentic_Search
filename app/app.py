@@ -16,7 +16,14 @@ model_endpoint = None
 print ("Creating graph and compiling workflow...")
 graph = create_graph(server=server, model=model, model_endpoint=model_endpoint)
 workflow = compile_workflow(graph)
-print ("Graph and workflow created.")
+
+# print(workflow.get_graph().draw_mermaid())
+
+# workflow_image =workflow.get_graph().draw_mermaid()
+# with open("workflow_image.png", "wb") as f:
+#     f.write(workflow_image)
+
+
 
 st.title("Agentic Search")
 
