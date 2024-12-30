@@ -1,10 +1,13 @@
 # import json
 # import yaml
 # import os
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from termcolor import colored
-
 from models.groq_models import GroqModel, GroqJSONModel
-
+from utils.steamlit import displayResponse
+from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 from prompts.prompts import (
     planner_prompt_template,
     selector_prompt_template,
@@ -24,7 +27,14 @@ class Agent:
         self.model_endpoint = model_endpoint
         self.stop = stop
         self.guided_json = guided_json
+        self.script_ctx = get_script_run_ctx()
 
+    def safe_display_response(self, message):
+        """Thread-safe way to display responses"""
+        if self.script_ctx:
+            add_script_run_ctx(self.script_ctx)
+        displayResponse(message)
+        
     def get_llm(self, json_model=True):
 
 
@@ -62,6 +72,7 @@ class PlannerAgent(Agent):
 
         self.update_state("planner_response", response)
         print(colored(f"Planner 👩🏿‍💻: {response}", 'cyan'))
+        displayResponse(f"Planner 👩🏿‍💻: {response}")
         return self.state
 
 class SelectorAgent(Agent):
@@ -89,6 +100,7 @@ class SelectorAgent(Agent):
         response = ai_msg.content
 
         print(colored(f"selector 🧑🏼‍💻: {response}", 'green'))
+        displayResponse(f"selector 🧑🏼‍💻: {response}")
         self.update_state("selector_response", response)
         return self.state
 
@@ -119,6 +131,7 @@ class ReporterAgent(Agent):
         response = ai_msg.content
 
         print(colored(f"Reporter 👨‍💻: {response}", 'yellow'))
+        displayResponse(f"Reporter 👨‍💻: {response}")
         self.update_state("reporter_response", response)
         return self.state
 
@@ -152,6 +165,7 @@ class ReviewerAgent(Agent):
             ai_msg = llm.invoke(messages)
             response = ai_msg.content
             print(colored(f"Reviewer 👩🏽‍⚖️: {response}", 'magenta'))
+            displayResponse(f"Reviewer 👩🏽‍⚖️: {response}")
             self.update_state("reviewer_response", response)
         except Exception as e:
             response = f"Error in invoking model! {str(e)}"
@@ -176,6 +190,7 @@ class RouterAgent(Agent):
         response = ai_msg.content
 
         print(colored(f"Router 🧭: {response}", 'blue'))
+        displayResponse(f"Router 🧭: {response}")
         self.update_state("router_response", response)
         return self.state
 
@@ -185,6 +200,7 @@ class FinalReportAgent(Agent):
         response = final_response_value.content
 
         print(colored(f"Final Report 📝: {response}", 'blue'))
+        displayResponse(f"Final Report 📝: {response}")
         self.update_state("final_reports", response)
         return self.state
 
